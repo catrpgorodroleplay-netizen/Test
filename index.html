@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CREATE - Международный Чат</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 5px;
+        }
+        
+        .header .subtitle {
+            opacity: 0.8;
+            font-size: 0.9em;
+        }
+        
+        #login {
+            padding: 30px;
+            text-align: center;
+        }
+        
+        #login input {
+            padding: 12px 15px;
+            font-size: 16px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            width: 300px;
+            margin-right: 10px;
+        }
+        
+        #login button {
+            padding: 12px 25px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s;
+        }
+        
+        #login button:hover {
+            background: #2980b9;
+        }
+        
+        #chatContainer {
+            display: none;
+            height: 70vh;
+        }
+        
+        #chat {
+            height: calc(100% - 80px);
+            overflow-y: auto;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+        
+        .message {
+            margin: 15px 0;
+            padding: 12px 15px;
+            border-radius: 12px;
+            max-width: 70%;
+            word-wrap: break-word;
+        }
+        
+        .my-message {
+            background: #3498db;
+            color: white;
+            margin-left: auto;
+            text-align: right;
+        }
+        
+        .other-message {
+            background: white;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .message-header {
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+        }
+        
+        .message-time {
+            font-size: 0.7em;
+            opacity: 0.7;
+            margin-top: 5px;
+        }
+        
+        .input-area {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #eee;
+            display: flex;
+            gap: 10px;
+        }
+        
+        #messageInput {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        
+        #messageInput:focus {
+            border-color: #3498db;
+            outline: none;
+        }
+        
+        .send-btn {
+            padding: 12px 25px;
+            background: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s;
+        }
+        
+        .send-btn:hover {
+            background: #219a52;
+        }
+        
+        .logout-btn {
+            padding: 8px 15px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        
+        .user-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            background: #ecf0f1;
+            border-bottom: 1px solid #bdc3c7;
+        }
+        
+        .online-count {
+            background: #27ae60;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+        }
+        
+        /* Анимации */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .message {
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        /* Полоса прокрутки */
+        #chat::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        #chat::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        
+        #chat::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 3px;
+        }
+        
+        #chat::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>CREATE</h1>
+            <div class="subtitle">Международный чат 🇷🇺🇺🇸</div>
+        </div>
+        
+        <div id="login">
+            <h2>Добро пожаловать! 👋</h2>
+            <p style="margin: 20px 0; color: #666;">Введите ваше имя чтобы присоединиться к чату</p>
+            <input type="text" id="username" placeholder="Ваше имя" maxlength="20">
+            <button onclick="login()">Присоединиться к чату</button>
+        </div>
+        
+        <div id="chatContainer">
+            <div class="user-info">
+                <div>
+                    Вы: <strong id="currentUserName"></strong>
+                    <span class="online-count" id="onlineCount">1 онлайн</span>
+                </div>
+                <button class="logout-btn" onclick="logout()">Выйти</button>
+            </div>
+            
+            <div id="chat"></div>
+            
+            <div class="input-area">
+                <input type="text" id="messageInput" placeholder="Напишите сообщение..." maxlength="500">
+                <button class="send-btn" onclick="sendMessage()">Отправить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Подключаем Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <script>
+        // Конфигурация Supabase с вашими данными
+        const supabaseUrl = 'https://tpcyttxxxtnmfpvnyfmm.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRwY3l0dHh4eHRubWZwdm55Zm1tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE5OTgzMDUsImV4cCI6MjA3NzU3NDMwNX0.NQxbRwG68DZL781Zdd3baKiAhw3Q8xyhGgTgC57y39E';
+        
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+        let currentUser = '';
+        let userColor = '';
+
+        // Функция входа
+        function login() {
+            const username = document.getElementById('username').value.trim();
+            if (username) {
+                currentUser = username;
+                userColor = generateUserColor(username);
+                
+                document.getElementById('login').style.display = 'none';
+                document.getElementById('chatContainer').style.display = 'block';
+                document.getElementById('currentUserName').textContent = currentUser;
+                
+                initializeChat();
+            } else {
+                alert('Пожалуйста, введите ваше имя!');
+            }
+        }
+
+        // Функция выхода
+        function logout() {
+            if (confirm('Вы уверены, что хотите выйти из чата?')) {
+                currentUser = '';
+                document.getElementById('login').style.display = 'block';
+                document.getElementById('chatContainer').style.display = 'none';
+                document.getElementById('chat').innerHTML = '';
+                document.getElementById('username').value = '';
+            }
+        }
+
+        // Инициализация чата
+        async function initializeChat() {
+            await createTableIfNeeded();
+            await loadMessages();
+            setupRealtime();
+        }
+
+        // Создание таблицы если нужно
+        async function createTableIfNeeded() {
+            const { error } = await supabase
+                .from('messages')
+                .select('*')
+                .limit(1);
+                
+            if (error && error.message.includes('does not exist')) {
+                alert('Таблица "messages" не существует. Создайте её в Supabase Dashboard с колонками: id, user, text, created_at');
+            }
+        }
+
+        // Загружаем историю сообщений
+        async function loadMessages() {
+            const { data: messages, error } = await supabase
+                .from('messages')
+                .select('*')
+                .order('created_at', { ascending: true })
+                .limit(100);
+
+            if (error) {
+                console.error('Ошибка загрузки сообщений:', error);
+                showError('Ошибка загрузки чата');
+                return;
+            }
+
+            if (messages) {
+                document.getElementById('chat').innerHTML = '';
+                messages.forEach(msg => displayMessage(msg));
+                scrollToBottom();
+            }
+        }
+
+        // Настраиваем реальное время
+        function setupRealtime() {
+            supabase
+                .channel('messages')
+                .on('postgres_changes', 
+                    { 
+                        event: 'INSERT', 
+                        schema: 'public', 
+                        table: 'messages' 
+                    }, 
+                    (payload) => {
+                        displayMessage(payload.new);
+                        scrollToBottom();
+                    }
+                )
+                .subscribe();
+        }
+
+        // Отправка сообщения
+        async function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const text = input.value.trim();
+            
+            if (text && currentUser) {
+                const { error } = await supabase
+                    .from('messages')
+                    .insert([
+                        { 
+                            user: currentUser, 
+                            text: text
+                        }
+                    ]);
+
+                if (error) {
+                    console.error('Ошибка отправки:', error);
+                    showError('Ошибка отправки сообщения');
+                } else {
+                    input.value = '';
+                }
+            }
+        }
+
+        // Показать сообщение
+        function displayMessage(msg) {
+            const chat = document.getElementById('chat');
+            const messageDiv = document.createElement('div');
+            
+            const isMyMessage = msg.user === currentUser;
+            messageDiv.className = isMyMessage ? 'message my-message' : 'message other-message';
+            
+            const time = new Date(msg.created_at).toLocaleTimeString('ru-RU', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            
+            if (!isMyMessage) {
+                messageDiv.innerHTML = `
+                    <div class="message-header" style="color: ${getUserColor(msg.user)}">
+                        ${msg.user}
+                    </div>
+                    <div>${escapeHtml(msg.text)}</div>
+                    <div class="message-time">${time}</div>
+                `;
+            } else {
+                messageDiv.innerHTML = `
+                    <div>${escapeHtml(msg.text)}</div>
+                    <div class="message-time">${time}</div>
+                `;
+            }
+            
+            chat.appendChild(messageDiv);
+            scrollToBottom();
+        }
+
+        // Вспомогательные функции
+        function scrollToBottom() {
+            const chat = document.getElementById('chat');
+            chat.scrollTop = chat.scrollHeight;
+        }
+
+        function generateUserColor(username) {
+            let hash = 0;
+            for (let i = 0; i < username.length; i++) {
+                hash = username.charCodeAt(i) + ((hash << 5) - hash);
+            }
+            const hue = hash % 360;
+            return `hsl(${hue}, 70%, 50%)`;
+        }
+
+        function getUserColor(username) {
+            let hash = 0;
+            for (let i = 0; i < username.length; i++) {
+                hash = username.charCodeAt(i) + ((hash << 5) - hash);
+            }
+            const hue = hash % 360;
+            return `hsl(${hue}, 70%, 50%)`;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function showError(message) {
+            alert(message);
+        }
+
+        // Отправка по Enter
+        document.getElementById('messageInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // Автофокус на поле ввода
+        document.getElementById('username').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                login();
+            }
+        });
+
+        document.getElementById('username').focus();
+    </script>
+</body>
+</html>
